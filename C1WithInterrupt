@@ -1,0 +1,43 @@
+/*
+ * Testing TC1 timer
+ *  Author: Eldar Maharramli 
+ */
+#include <avr/io.h>
+#include <util/delay.h>
+#include "lcd.h"
+#include <avr/interrupt.h>
+extern void lcd_backlight(char on);   //not in lcd.h
+#include <stdlib.h>       //for itoa()
+unsigned int value = 0;
+int main(void)
+{ 
+	{
+		OCR1A = 0X3D08; //15624 Setting Output comparator
+		TCCR1B |= (1<<WGM12); //CTC mode 4
+		TIMSK1 |= (1<<OCIE1A);// Output Compare B Match interrupt is enabled
+		TCCR1B |= (1<<CS12) | (1<<CS10);//set the prescaler to 1024
+		sei();
+	}
+    lcd_init(LCD_ON_DISPLAY);
+    lcd_backlight(0);
+    _delay_ms(200);
+    lcd_backlight(1);
+    _delay_ms(200);           
+    while (1)
+    {
+	
+        lcd_clrscr();
+        lcd_gotoxy(0, 0);
+        lcd_puts("Learning timers!");
+		ISR(TIMER1_COMPA_vect);
+    }
+}
+ISR(TIMER1_COMPA_vect)
+{
+lcd_clrscr();
+value+=1;
+lcd_gotoxy(0, 1);
+char buf[10];
+itoa(value, buf, 10); //make string in buf
+lcd_puts(buf);     //and show it
+}
